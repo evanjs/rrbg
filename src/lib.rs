@@ -4,8 +4,6 @@ extern crate log;
 #[macro_use]
 extern crate serde_derive;
 
-use std::collections::HashMap;
-use std::error::Error;
 use std::process::Command;
 use std::process::ExitStatus;
 use std::sync::Arc;
@@ -85,7 +83,7 @@ pub fn get_image_resolution(path: String) -> Resolution {
 }
 
 /// Get the width and height for each attached screen
-pub unsafe fn get_resolutions(display: *mut xlib::Display, screen_count: i32) -> Vec<Resolution> {
+pub unsafe fn get_resolutions(display: *mut xlib::Display, screen_count: i32) -> Box<Vec<Resolution>> {
     let mut resolutions = Vec::new();
     for x in 0..screen_count {
         let screen = xlib::XScreenOfDisplay(display, x);
@@ -94,7 +92,7 @@ pub unsafe fn get_resolutions(display: *mut xlib::Display, screen_count: i32) ->
             height: (*screen).height as u32,
         })
     }
-    resolutions
+    Box::new(resolutions)
 }
 
 /// Sets the wallpaper for the given display
@@ -106,7 +104,7 @@ pub unsafe fn set_wallpaper(
     path: &str,
 ) -> Result<ExitStatus, std::io::Error> {
     Command::new("feh")
-        .args(&["--bg-fill", path])
+        .args(&["--bg-center", path])
         .spawn()
         .expect("failed to call feh")
         .wait()
