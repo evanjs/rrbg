@@ -5,11 +5,13 @@ use std::ptr;
 
 use rand::prelude::*;
 use rayon::prelude::*;
+use x11::xinerama;
 use x11::xlib;
+use x11::*;
 
-use rrbg::*;
 use rrbg::config::Config;
 use rrbg::Wallpaper;
+use rrbg::*;
 
 fn main() {
     drop(dotenv::dotenv());
@@ -39,7 +41,11 @@ fn main() {
         screen_resolutions.iter().for_each(|resolution| {
             let mut rng = thread_rng();
             let selected = papers.lock().unwrap();
-            let choice = selected.choose(&mut rng).unwrap();
+            // find wallpapers with the same resolution
+            let filtered = selected
+                .iter()
+                .filter(|&item| item.resolution.eq(resolution));
+            let choice = filtered.choose(&mut rng).unwrap();
             set_wallpaper(display, &choice.path).expect("failed to set wallpaper");
         });
     }

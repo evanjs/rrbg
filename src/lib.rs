@@ -26,11 +26,16 @@ pub struct Wallpaper {
     pub resolution: Resolution,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 /// The resolution of the image
 pub struct Resolution {
     pub width: u32,
     pub height: u32,
+}
+
+pub struct Screen {
+    pub resolution: Resolution,
+    pub screen_number: u8,
 }
 
 /// Return wallpapers (images) found under the specified directory
@@ -81,18 +86,15 @@ pub fn get_image_resolution(path: String) -> Resolution {
 
 /// Get the width and height for each attached screen
 pub unsafe fn get_resolutions(display: *mut xlib::Display, screen_count: i32) -> Vec<Resolution> {
-    let mut reses = Vec::new();
-    //    println!("Screens: {:#?}", screen_count);
+    let mut resolutions = Vec::new();
     for x in 0..screen_count {
         let screen = xlib::XScreenOfDisplay(display, x);
-        //        println!("Width: {:#?}", (*screen).width);
-        //        println!("Width: {:#?}", (*screen).height);
-        reses.push(Resolution {
+        resolutions.push(Resolution {
             width: (*screen).width as u32,
             height: (*screen).height as u32,
         })
     }
-    reses
+    resolutions
 }
 
 /// Sets the wallpaper for the given display
