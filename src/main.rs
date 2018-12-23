@@ -1,16 +1,11 @@
-#[macro_use]
 extern crate log;
 
 use std::ptr;
 
 use rand::prelude::*;
-use rayon::prelude::*;
-use x11::xinerama;
 use x11::xlib;
-use x11::*;
 
 use rrbg::config::Config;
-use rrbg::Wallpaper;
 use rrbg::*;
 
 fn main() {
