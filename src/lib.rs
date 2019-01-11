@@ -4,15 +4,11 @@ extern crate log;
 #[macro_use]
 extern crate serde_derive;
 
-use std::process::Command;
-use std::process::ExitStatus;
-use std::sync::Arc;
-use std::sync::Mutex;
-
 use glob::glob;
 use imagesize::size;
-use rayon::prelude::*;
-use x11::xlib;
+use std::process::{Command, ExitStatus};
+use std::ptr;
+use x11::{xlib, xrandr};
 
 pub mod config;
 
@@ -41,9 +37,9 @@ pub struct Screen {
 /// ```rust
 /// let wallpapers = get_walls("/mnt/gentoo/usr/share/wallpapers/custom/**/*.jpg");
 /// ```
-pub fn get_walls(path: String) -> Box<Arc<Mutex<Vec<Wallpaper>>>> {
-    let papers = Arc::new(Mutex::new(Vec::<Wallpaper>::new()));
-    let mut entries: Vec<_> = glob(&path)
+pub fn get_walls(path: String) -> Vec<Wallpaper> {
+    let mut papers = Vec::new();
+    let entries: Vec<_> = glob(&path)
         .unwrap()
         .map(|entry| {
             entry
@@ -53,15 +49,16 @@ pub fn get_walls(path: String) -> Box<Arc<Mutex<Vec<Wallpaper>>>> {
                 .to_string()
         })
         .collect();
-    entries.par_iter_mut().for_each(|entry| {
-        let resolution = get_image_resolution(entry.to_string());
-        papers.lock().unwrap().push(Wallpaper {
-            path: entry.to_string(),
+
+    entries.iter().for_each(|entry| {
+        let resolution = get_image_resolution(entry.to_owned());
+        papers.push(Wallpaper {
+            path: entry.to_owned(),
             resolution,
         });
     });
 
-    Box::new(papers)
+    papers
 }
 
 /// Get the width and height of an image
@@ -76,35 +73,52 @@ pub fn get_image_resolution(path: String) -> Resolution {
             width = o.width as u32;
             height = o.height as u32;
         }
-        Err(why) => error!("Failed to get image resolution"),
+        Err(why) => error!("Failed to get image resolution - {:#?}", why),
     };
 
     Resolution { width, height }
 }
 
+pub fn get_display() -> *mut xlib::Display {
+    unsafe { xlib::XOpenDisplay(ptr::null()) }
+}
+
 /// Get the width and height for each attached screen
-pub unsafe fn get_resolutions(display: *mut xlib::Display, screen_count: i32) -> Box<Vec<Resolution>> {
+pub fn get_resolutions(display: *mut xlib::Display) -> Vec<Resolution> {
+    let default_root_window = unsafe { xlib::XDefaultRootWindow(display) };
+    let screens = unsafe { xrandr::XRRGetScreenResources(display, default_root_window) };
+
     let mut resolutions = Vec::new();
-    for x in 0..screen_count {
-        let screen = xlib::XScreenOfDisplay(display, x);
-        resolutions.push(Resolution {
-            width: (*screen).width as u32,
-            height: (*screen).height as u32,
-        })
+
+    for i in 0..unsafe { *screens }.ncrtc as usize {
+        unsafe {
+            let info = xrandr::XRRGetCrtcInfo(display, screens, *(*screens).crtcs.add(i));
+            match ((*info).height, (*info).width) {
+                (0, 0) => (),
+                _ => resolutions.push(Resolution {
+                    width: (*info).width,
+                    height: (*info).height,
+                }),
+            }
+            xrandr::XRRFreeCrtcInfo(info);
+        }
     }
-    Box::new(resolutions)
+    unsafe {
+        xrandr::XRRFreeScreenResources(screens);
+        xlib::XCloseDisplay(display);
+    }
+
+    resolutions
 }
 
 /// Sets the wallpaper for the given display
 /// Currently, this calls feh internally, but
 /// it would be interesting to see how a pure libc binding
 /// or similar implementation could be done
-pub unsafe fn set_wallpaper(
-    display: *mut xlib::Display,
-    path: &str,
-) -> Result<ExitStatus, std::io::Error> {
+pub fn set_wallpaper(path: Vec<String>) -> Result<ExitStatus, std::io::Error> {
     Command::new("feh")
-        .args(&["--bg-center", path])
+        .args(&["--bg-center"])
+        .args(path)
         .spawn()
         .expect("failed to call feh")
         .wait()

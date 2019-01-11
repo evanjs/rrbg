@@ -1,9 +1,6 @@
 extern crate log;
 
-use std::ptr;
-
 use rand::prelude::*;
-use x11::xlib;
 
 use rrbg::config::Config;
 use rrbg::*;
@@ -23,25 +20,20 @@ fn main() {
 
     let papers = get_walls(wallpaper_path);
 
-    unsafe {
-        let display = xlib::XOpenDisplay(ptr::null());
-        if display.is_null() {
-            panic!("XOpenDisplay failed");
-        }
+    let display = get_display();
+    let screen_resolutions = get_resolutions(display);
 
-        // get the number of screens attached
-        let screen_count = xlib::XScreenCount(display);
-        let screen_resolutions = get_resolutions(display, screen_count);
+    let mut walls = Vec::new();
 
-        screen_resolutions.iter().for_each(|resolution| {
-            let mut rng = thread_rng();
-            let selected = papers.lock().unwrap();
-            // find wallpapers with the same resolution
-            let filtered = selected
-                .iter()
-                .filter(|&item| item.resolution.eq(resolution));
-            let choice = filtered.choose(&mut rng).unwrap();
-            set_wallpaper(display, &choice.path).expect("failed to set wallpaper");
-        });
-    }
+    screen_resolutions.iter().for_each(|resolution| {
+        let mut rng = thread_rng();
+        let filtered = papers.iter().filter(|&item| item.resolution.eq(resolution));
+        let choice = filtered
+            .choose(&mut rng)
+            .expect("failed to select random wallpaper");
+        &walls.push(choice.path.to_owned());
+        drop(rng);
+    });
+
+    drop(set_wallpaper(walls.to_owned()));
 }

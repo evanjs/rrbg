@@ -1,28 +1,25 @@
 [package]
-name = "rrbg"
-version = "0.1.0"
 authors = ["Evan Stoll <evanjsx@gmail.com>"]
 edition = "2018"
-
+name = "rrbg"
+version = "0.1.0"
 [dependencies]
 dotenv = "0.13.0"
+env_logger = "0.6.0"
 envy = "0.3.3"
+futures-preview = "0.2.2"
 glob = "0.2.11"
-serde_derive = "1.0.82"
-serde = "1.0.82"
-rayon = "1.0.3"
 imagesize = "0.6.0"
 log = "0.4.6"
-env_logger = "0.6.0"
-dict = "0.1.5"
-rand = "0.6.1"
-wallpaper = "2.0.0"
+rand = "0.6.4"
+rayon = "1.0.3"
+serde = "1.0.84"
+serde_derive = "1.0.84"
 
 [dependencies.x11]
-version = "2.18.1"
 default-features = true
-features = ["xlib"]
-
+features = ["xlib", "xrandr"]
+version = "2.18.1"
 [profile.release]
-opt-level = "z"
 lto = "thin"
+opt-level = "z"
