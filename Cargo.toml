@@ -13,7 +13,7 @@ imagesize = "0.6.0"
 log = "0.4.6"
 rand = "0.6.5"
 rayon = "1.0.3"
-serde = "1.0.84"
+serde = "1.0.88"
 serde_derive = "1.0.88"
 
 [dependencies.x11]
