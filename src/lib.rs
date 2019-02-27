@@ -7,12 +7,23 @@ extern crate serde_derive;
 use glob::glob;
 use imagesize::size;
 use std::process::{Command, ExitStatus};
+use std::path::*;
+//use std::path::Path::*;
 use std::ptr;
 use x11::{xlib, xrandr};
+use failure::*;
+use std::error::Error;
+
+use dirs::*;
+use std::fs::File;
+use std::io::Read;
+use std::io::Write;
+use serde::ser::Serialize;
+use std::io::BufReader;
 
 pub mod config;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 /// A wallpaper entry
 pub struct Wallpaper {
     /// The path to the wallpaper image
@@ -20,7 +31,7 @@ pub struct Wallpaper {
     pub resolution: Resolution,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
 /// The resolution of the image
 pub struct Resolution {
     pub width: u32,
@@ -37,7 +48,7 @@ pub struct Screen {
 /// ```rust
 /// let wallpapers = get_walls("/mnt/gentoo/usr/share/wallpapers/custom/**/*.jpg");
 /// ```
-pub fn get_walls(path: String) -> Vec<Wallpaper> {
+pub fn get_walls1(path: String) -> Vec<Wallpaper> {
     let mut papers = Vec::new();
     let entries: Vec<_> = glob(&path)
         .unwrap()
@@ -59,6 +70,53 @@ pub fn get_walls(path: String) -> Vec<Wallpaper> {
     });
 
     papers
+}
+
+fn get_cache() -> Vec<Wallpaper>  {
+    // create path
+    let cache = std::path::Path::join(&dirs::config_dir().expect("Failed to get config directory"), "rrbg").join("cache");
+    if !cache.parent().expect("Failed to get parent directory of cache file").exists() {
+        info!("No config directory found.  Creating ...");
+        std::fs::create_dir_all(cache.parent().expect("Failed to get parent directory of cache file")).expect("Failed to create config directory");
+    }
+    if !cache.exists() {
+        return Vec::new();
+    }
+    // open file
+    let mut file = File::open(cache).expect("Failed to open cache file");
+    // get contents
+    let mut contents = String::new();
+    if file.metadata().unwrap().len() == 0 {
+        return Vec::new()
+    }
+    file.read_to_string(&mut contents).expect("Failed to read cache file");
+    serde_json::from_str(&contents).expect("Failed to deserialize cache")
+}
+
+pub fn write_cache(wallpapers: Vec<Wallpaper>) {
+    // todo: see if cache path can be made into a constant function
+    // create path
+    let cache = std::path::Path::join(&dirs::config_dir().unwrap(), "rrbg").join("cache");
+    // open file
+    let mut file = File::create(cache).expect("Failed to open cache file");
+
+    // Serialize data
+    serde_json::to_writer_pretty(file, &wallpapers).unwrap();
+    info!("Wrote stuff");
+}
+
+pub fn get_walls(path: String) -> Vec<Wallpaper> {
+    let mut config = get_cache();
+    let mut walls = Vec::new();
+    match config.len() {
+        0 => {
+            &walls.append(&mut get_walls1(path));
+        },
+        _ => {
+            &walls.append(&mut config);
+        }
+    };
+    walls
 }
 
 /// Get the width and height of an image
