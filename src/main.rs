@@ -1,12 +1,12 @@
 use rand::prelude::*;
 
 use env_logger;
+use log::*;
 use rrbg::config::Config;
 use rrbg::*;
-use log::*;
 use std::process;
 
-use clap::{App, load_yaml,value_t};
+use clap::{load_yaml, value_t, App};
 
 fn main() {
     drop(env_logger::init());
@@ -14,8 +14,6 @@ fn main() {
     let yml = load_yaml!("clap.yaml");
     let app = App::from_yaml(yml);
     let matches = app.get_matches();
-
-
 
     let wallpaper_path: String;
 
@@ -33,8 +31,6 @@ fn main() {
     debug!("Occurrences of update flag: {:?}", &update);
 
     let papers = get_walls(wallpaper_path);
-
-
 
     if update > 0 {
         trace!("Updating cache");

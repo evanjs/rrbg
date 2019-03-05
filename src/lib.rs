@@ -4,20 +4,20 @@ extern crate log;
 #[macro_use]
 extern crate serde_derive;
 
+use failure::*;
 use glob::glob;
 use imagesize::size;
-use std::process::{Command, ExitStatus};
-use std::path::*;
-use std::ptr;
-use failure::*;
 use std::error::Error;
+use std::path::*;
+use std::process::{Command, ExitStatus};
+use std::ptr;
 
 use dirs::*;
+use serde::ser::Serialize;
 use std::fs::File;
+use std::io::BufReader;
 use std::io::Read;
 use std::io::Write;
-use serde::ser::Serialize;
-use std::io::BufReader;
 
 pub mod config;
 
@@ -70,12 +70,25 @@ pub fn get_walls1(path: String) -> Vec<Wallpaper> {
     papers
 }
 
-fn get_cache() -> Vec<Wallpaper>  {
+fn get_cache() -> Vec<Wallpaper> {
     // create path
-    let cache = std::path::Path::join(&dirs::config_dir().expect("Failed to get config directory"), "rrbg").join("cache");
-    if !cache.parent().expect("Failed to get parent directory of cache file").exists() {
+    let cache = std::path::Path::join(
+        &dirs::config_dir().expect("Failed to get config directory"),
+        "rrbg",
+    )
+    .join("cache");
+    if !cache
+        .parent()
+        .expect("Failed to get parent directory of cache file")
+        .exists()
+    {
         info!("No config directory found.  Creating ...");
-        std::fs::create_dir_all(cache.parent().expect("Failed to get parent directory of cache file")).expect("Failed to create config directory");
+        std::fs::create_dir_all(
+            cache
+                .parent()
+                .expect("Failed to get parent directory of cache file"),
+        )
+        .expect("Failed to create config directory");
     }
     if !cache.exists() {
         return Vec::new();
@@ -85,9 +98,10 @@ fn get_cache() -> Vec<Wallpaper>  {
     // get contents
     let mut contents = String::new();
     if file.metadata().unwrap().len() == 0 {
-        return Vec::new()
+        return Vec::new();
     }
-    file.read_to_string(&mut contents).expect("Failed to read cache file");
+    file.read_to_string(&mut contents)
+        .expect("Failed to read cache file");
     serde_json::from_str(&contents).expect("Failed to deserialize cache")
 }
 
@@ -109,7 +123,7 @@ pub fn get_walls(path: String) -> Vec<Wallpaper> {
     match config.len() {
         0 => {
             &walls.append(&mut get_walls1(path));
-        },
+        }
         _ => {
             &walls.append(&mut config);
         }
@@ -135,18 +149,26 @@ pub fn get_image_resolution(path: String) -> Resolution {
     Resolution { width, height }
 }
 
-
 /// Get the width and height for each attached screen
 pub fn get_resolutions() -> Vec<Resolution> {
-let sdl_context = sdl2::init().unwrap();
-    let mut resolutions = Vec::new(); 
+    let sdl_context = sdl2::init().unwrap();
+    let mut resolutions = Vec::new();
 
-    let video_subsystem = sdl_context.video().expect("Failed to get video subsystem from sdl context");
+    let video_subsystem = sdl_context
+        .video()
+        .expect("Failed to get video subsystem from sdl context");
 
-    let num_displays = video_subsystem.num_video_displays().expect("Failed to get number of displays");
+    let num_displays = video_subsystem
+        .num_video_displays()
+        .expect("Failed to get number of displays");
     for n in 0..num_displays {
-        let mode = video_subsystem.current_display_mode(n).expect("Failed to get current display mode");
-        &resolutions.push(Resolution{width: mode.w, height: mode.h});
+        let mode = video_subsystem
+            .current_display_mode(n)
+            .expect("Failed to get current display mode");
+        &resolutions.push(Resolution {
+            width: mode.w,
+            height: mode.h,
+        });
     }
 
     resolutions
