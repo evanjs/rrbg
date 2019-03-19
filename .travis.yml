@@ -4,3 +4,4 @@ addings:
     packages:
       - xrandr
       - xinerama
+      - x11
