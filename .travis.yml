@@ -2,6 +2,5 @@ language: rust
 addings:
   apt:
     packages:
-      - xrandr
-      - xinerama
-      - x11
+      - libxrandr-dev
+      - libxinerama-dev
