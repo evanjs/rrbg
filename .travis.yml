@@ -1,1 +1,6 @@
 language: rust
+addings:
+  apt:
+    packages:
+      - xrandr
+      - xinerama
