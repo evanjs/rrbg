@@ -4,3 +4,4 @@ addings:
     packages:
       - libxrandr-dev
       - libxinerama-dev
+      - libx11-dev
