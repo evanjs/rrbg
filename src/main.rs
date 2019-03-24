@@ -1,12 +1,19 @@
-extern crate log;
-
 use rand::prelude::*;
 
 use rrbg::config::Config;
 use rrbg::*;
+use log::*;
+
+use clap::{App, load_yaml,value_t};
 
 fn main() {
     drop(dotenv::dotenv());
+    let yml = load_yaml!("clap.yaml");
+    let app = App::from_yaml(yml);
+    let matches = app.get_matches();
+
+
+
     let wallpaper_path: String;
 
     match envy::from_env::<Config>() {
@@ -17,8 +24,19 @@ fn main() {
             panic!("{:#?}", e);
         }
     }
+    debug!("{:?}", &wallpaper_path);
+    let update = value_t!(matches, "update", bool).unwrap_or(false);
+    debug!("{:?}", &update);
 
     let papers = get_walls(wallpaper_path);
+
+
+
+    if update {
+        trace!("Updating cache");
+        write_cache(papers.clone());
+
+    }
 
     let display = get_display();
     let screen_resolutions = get_resolutions(display);

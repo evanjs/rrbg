@@ -1,0 +1,12 @@
+name: rrbg
+version: "1.0"
+about: Random background changer
+author: Evan Stoll <evanjsx@gmail.com>
+
+args:
+  - update:
+      help: initialize the wallpaper cache
+      short: u
+      index: 1
+      long: update
+      required: false
