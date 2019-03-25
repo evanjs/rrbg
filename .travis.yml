@@ -5,5 +5,4 @@ rust:
 addons:
   apt:
     packages:
-      - libx11-dev
-      - libxrandr-dev
+      - libsdl2-dev
