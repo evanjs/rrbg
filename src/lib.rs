@@ -4,15 +4,15 @@ extern crate log;
 #[macro_use]
 extern crate serde_derive;
 
+use failure::*;
 use glob::glob;
 use imagesize::size;
+use std::error::Error;
+use std::path::*;
 use std::process::{Command, ExitStatus};
 use std::path::*;
-//use std::path::Path::*;
 use std::ptr;
-use x11::{xlib, xrandr};
 use failure::*;
-use std::error::Error;
 
 use dirs::*;
 use std::fs::File;
@@ -34,8 +34,8 @@ pub struct Wallpaper {
 #[derive(Debug, Eq, PartialEq, Clone, Serialize, Deserialize)]
 /// The resolution of the image
 pub struct Resolution {
-    pub width: u32,
-    pub height: u32,
+    pub width: i32,
+    pub height: i32,
 }
 
 pub struct Screen {
@@ -129,8 +129,8 @@ pub fn get_image_resolution(path: String) -> Resolution {
     let mut height = 0;
     match size {
         Ok(o) => {
-            width = o.width as u32;
-            height = o.height as u32;
+            width = o.width as i32;
+            height = o.height as i32;
         }
         Err(why) => error!("Failed to get image resolution - {:#?}", why),
     };
@@ -138,33 +138,26 @@ pub fn get_image_resolution(path: String) -> Resolution {
     Resolution { width, height }
 }
 
-pub fn get_display() -> *mut xlib::Display {
-    unsafe { xlib::XOpenDisplay(ptr::null()) }
-}
-
 /// Get the width and height for each attached screen
-pub fn get_resolutions(display: *mut xlib::Display) -> Vec<Resolution> {
-    let default_root_window = unsafe { xlib::XDefaultRootWindow(display) };
-    let screens = unsafe { xrandr::XRRGetScreenResources(display, default_root_window) };
-
+pub fn get_resolutions() -> Vec<Resolution> {
+    let sdl_context = sdl2::init().unwrap();
     let mut resolutions = Vec::new();
 
-    for i in 0..unsafe { *screens }.ncrtc as usize {
-        unsafe {
-            let info = xrandr::XRRGetCrtcInfo(display, screens, *(*screens).crtcs.add(i));
-            match ((*info).height, (*info).width) {
-                (0, 0) => (),
-                _ => resolutions.push(Resolution {
-                    width: (*info).width,
-                    height: (*info).height,
-                }),
-            }
-            xrandr::XRRFreeCrtcInfo(info);
-        }
-    }
-    unsafe {
-        xrandr::XRRFreeScreenResources(screens);
-        xlib::XCloseDisplay(display);
+    let video_subsystem = sdl_context
+        .video()
+        .expect("Failed to get video subsystem from sdl context");
+
+    let num_displays = video_subsystem
+        .num_video_displays()
+        .expect("Failed to get number of displays");
+    for n in 0..num_displays {
+        let mode = video_subsystem
+            .current_display_mode(n)
+            .expect("Failed to get current display mode");
+        &resolutions.push(Resolution {
+            width: mode.w,
+            height: mode.h,
+        });
     }
 
     resolutions

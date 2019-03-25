@@ -1,18 +1,19 @@
 use rand::prelude::*;
 
+use env_logger;
+use log::*;
 use rrbg::config::Config;
 use rrbg::*;
-use log::*;
+use std::process;
 
-use clap::{App, load_yaml,value_t};
+use clap::{load_yaml, value_t, App};
 
 fn main() {
+    drop(env_logger::init());
     drop(dotenv::dotenv());
     let yml = load_yaml!("clap.yaml");
     let app = App::from_yaml(yml);
     let matches = app.get_matches();
-
-
 
     let wallpaper_path: String;
 
@@ -25,21 +26,18 @@ fn main() {
         }
     }
     debug!("{:?}", &wallpaper_path);
-    let update = value_t!(matches, "update", bool).unwrap_or(false);
-    debug!("{:?}", &update);
+    let update = matches.occurrences_of("update");
+    //let update = value_t!(matches, "update", bool).unwrap_or(false);
+    debug!("Occurrences of update flag: {:?}", &update);
 
     let papers = get_walls(wallpaper_path);
 
-
-
-    if update {
+    if update > 0 {
         trace!("Updating cache");
         write_cache(papers.clone());
-
     }
 
-    let display = get_display();
-    let screen_resolutions = get_resolutions(display);
+    let screen_resolutions = get_resolutions();
 
     let mut walls = Vec::new();
 
