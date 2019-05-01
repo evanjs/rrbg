@@ -8,17 +8,17 @@ dotenv = "0.13.0"
 env_logger = "0.6.1"
 envy = "0.4.0"
 glob = "0.3.0"
-imagesize = "0.7.1"
+imagesize = "0.8.0"
 log = "0.4.6"
 rand = "0.6.5"
 rayon = "1.0.3"
-serde = "1.0.89"
-serde_derive = "1.0.89"
+serde = "1.0.90"
+serde_derive = "1.0.90"
 dirs = "1.0.5"
 failure = "0.1.5"
 serde_json = "1.0.39"
-clap = { version = "2.32.0", features = ["yaml"] }
-sdl2 = "0.32.1"
+clap = { version = "2.33.0", features = ["yaml"] }
+sdl2 = "0.32.2"
 
 [profile.release]
 lto = "thin"
