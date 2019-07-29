@@ -1,3 +1,5 @@
+#![feature(todo_macro)]
+
 extern crate env_logger;
 #[macro_use]
 extern crate log;
@@ -45,10 +47,6 @@ pub struct Screen {
 
 /// Return wallpapers (images) found under the specified directory
 /// Note: This function accepts glob strings, e.g. "**/*.jpg"
-/// ```rust
-/// use rrbg::get_walls;
-/// let wallpapers = get_walls(String::from("/mnt/gentoo/usr/share/wallpapers/custom/**/*.jpg"));
-/// ```
 pub fn get_walls1(path: String) -> Vec<Wallpaper> {
     let mut papers = Vec::new();
     let entries: Vec<_> = glob(&path)
