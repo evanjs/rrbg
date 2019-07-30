@@ -7,6 +7,5 @@ args:
   - update:
       help: initialize the wallpaper cache
       short: u
-      index: 1
       long: update
       required: false

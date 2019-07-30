@@ -27,7 +27,6 @@ fn main() {
     }
     debug!("{:?}", &wallpaper_path);
     let update = matches.occurrences_of("update");
-    //let update = value_t!(matches, "update", bool).unwrap_or(false);
     debug!("Occurrences of update flag: {:?}", &update);
 
     let papers = get_walls(wallpaper_path);
@@ -50,6 +49,5 @@ fn main() {
         &walls.push(choice.path.to_owned());
         drop(rng);
     });
-
-    drop(set_wallpaper(walls.to_owned()));
+    drop(set_wallpaper(walls));
 }
