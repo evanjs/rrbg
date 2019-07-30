@@ -10,7 +10,7 @@ fn default_wallpaper_directory() -> PathBuf {
         debug!("Set default wallpaper path to {:?}", path);
         path
     } else {
-        todo!("Check for user configured path here");
+        unimplemented!("Check for user configured path here");
     }
 }
 
