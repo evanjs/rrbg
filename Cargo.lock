@@ -298,9 +298,9 @@ dependencies = [
 
 [[package]]
 name = "imagesize"
-version = "0.8.1"
+version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5a12f644b997ae62de137f2c565379c80105b8cc233fe3117e4b43838c61b10"
+checksum = "cac2500701401d83c92c63930666e0d181235a205cfc0e7a00bb5d012a83faa7"
 
 [[package]]
 name = "itoa"
