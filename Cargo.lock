@@ -295,9 +295,9 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 
 [[package]]
 name = "imagesize"
-version = "0.8.1"
+version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5a12f644b997ae62de137f2c565379c80105b8cc233fe3117e4b43838c61b10"
+checksum = "fd27b2139f540ac627a6cb1b96105e86bfc5136d06236ea90272eec35a4f5088"
 
 [[package]]
 name = "itoa"
